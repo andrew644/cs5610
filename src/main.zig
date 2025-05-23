@@ -1,37 +1,26 @@
 const std = @import("std");
 
-const glfw = @cImport({
-    @cInclude("GLFW/glfw3.h");
-});
-const gl = @cImport({
-    @cInclude("GL/gl.h");
-});
+const project1 = @import("project1/project1.zig");
+const project2 = @import("project2/project2.zig");
 
 pub fn main() !void {
-    if (glfw.glfwInit() == glfw.GLFW_FALSE) {
-        std.debug.print("GLFW failed to load.\n", .{});
+    const allocator = std.heap.page_allocator;
+    const args = try std.process.argsAlloc(allocator);
+    defer std.process.argsFree(allocator, args);
+
+    if (args.len < 2) {
+        //run latest project
+        _ = try project2.project2();
         return;
     }
 
-    const window = glfw.glfwCreateWindow(640, 480, "CS5610", null, null);
-    if (window == null) {
-        std.debug.print("Window failed to create.\n", .{});
-        return error.WindowCreationFailed;
-    }
+    const command = args[1];
 
-    glfw.glfwMakeContextCurrent(window);
-
-    defer glfw.glfwTerminate();
-    defer glfw.glfwDestroyWindow(window);
-
-    while (glfw.glfwWindowShouldClose(window) != glfw.GLFW_TRUE) {
-        if (glfw.glfwGetKey(window, glfw.GLFW_KEY_ESCAPE) == glfw.GLFW_PRESS) {
-            glfw.glfwSetWindowShouldClose(window, glfw.GLFW_TRUE);
-        }
-
-        gl.glClearColor(0.2, 0.3, 0.3, 1.0);
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT);
-        glfw.glfwSwapBuffers(window);
-        glfw.glfwPollEvents();
+    if (std.mem.eql(u8, command, "project1")) {
+        _ = try project1.project1();
+    } else if (std.mem.eql(u8, command, "project2")) {
+        _ = try project2.project2();
+    } else {
+        std.debug.print("Unknown project: {s}\n", .{command});
     }
 }
