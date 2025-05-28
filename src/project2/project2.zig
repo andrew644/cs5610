@@ -6,8 +6,31 @@ const glfw = @cImport({
 const gl = @cImport({
     @cInclude("GL/gl.h");
 });
+const ass = @cImport({
+    @cInclude("assimp/cimport.h");
+    @cInclude("assimp/scene.h");
+    @cInclude("assimp/postprocess.h");
+});
 
 pub fn project2() !void {
+    const filename = "assets/teapot.obj";
+    const scene = ass.aiImportFile(filename, ass.aiProcessPreset_TargetRealtime_MaxQuality);
+    if (scene == null) {
+        std.debug.print("Failed to load teapot: {s}\n", .{ass.aiGetErrorString()});
+        return;
+    }
+    defer ass.aiReleaseImport(scene);
+    std.debug.print("Meshes: {d}\n", .{scene.*.mNumMeshes});
+    for (scene.*.mMeshes[0..scene.*.mNumMeshes]) |mesh| {
+        std.debug.print("Mesh has {d} vertices\n", .{mesh.*.mNumVertices});
+        for (mesh.*.mVertices[0..mesh.*.mNumVertices], 0..) |vertex, i| {
+            const x = vertex.x;
+            const y = vertex.y;
+            const z = vertex.z;
+            std.debug.print("Vertex {d}: ({d}, {d}, {d})\n", .{ i, x, y, z });
+        }
+    }
+
     if (glfw.glfwInit() == glfw.GLFW_FALSE) {
         std.debug.print("GLFW failed to load.\n", .{});
         return;

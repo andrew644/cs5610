@@ -5,6 +5,9 @@ pkgs.mkShell {
     glfw
     pkg-config   # For resolving library paths
 
+	# asset import lib
+	assimp
+
     # Required system libraries
     libGL
     xorg.libX11
