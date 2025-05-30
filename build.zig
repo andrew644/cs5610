@@ -13,6 +13,20 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    //GLAD
+    const glad = b.addStaticLibrary(.{
+        .name = "glad",
+        .target = target,
+        .optimize = optimize,
+    });
+    glad.linkLibC();
+    const glad_dep = b.dependency("glad", .{});
+    glad.addCSourceFile(.{ .file = b.path("lib/glad/src/glad.c") });
+    glad.addIncludePath(b.path("lib/glad"));
+    exe.addIncludePath(glad_dep.path("."));
+    b.installArtifact(glad);
+    exe.linkLibrary(glad);
+
     exe.linkLibC();
     exe.linkSystemLibrary("glfw");
     exe.linkSystemLibrary("gl");
