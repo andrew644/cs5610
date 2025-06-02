@@ -42,12 +42,19 @@ pub fn project2() !void {
     defer ass.aiReleaseImport(scene);
     const mesh = scene.*.mMeshes[0];
     const num_verticies = mesh.*.mNumVertices;
-    const vertices = mesh.*.mVertices[0..num_verticies];
+
     const float_vertices = try std.heap.c_allocator.alloc(f32, num_verticies * 3);
-    for (vertices, 0..) |v, i| {
-        float_vertices[i * 3 + 0] = v.x;
-        float_vertices[i * 3 + 1] = v.y;
-        float_vertices[i * 3 + 2] = v.z;
+    defer std.heap.c_allocator.free(float_vertices);
+
+    const view = 20; //TODO remove
+    for (mesh.*.mVertices[0..num_verticies], 0..) |v, i| {
+        float_vertices[i * 3 + 0] = v.x / view;
+        float_vertices[i * 3 + 1] = v.y / view;
+        float_vertices[i * 3 + 2] = v.z / view;
+    }
+
+    for (float_vertices) |fv| {
+        std.debug.print("{}\n", .{fv});
     }
 
     if (glfw.glfwInit() == glfw.GLFW_FALSE) {
@@ -55,11 +62,16 @@ pub fn project2() !void {
         return;
     }
 
-    const window = glfw.glfwCreateWindow(640, 480, "CS5610", null, null);
+    glfw.glfwWindowHint(glfw.GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfw.glfwWindowHint(glfw.GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfw.glfwWindowHint(glfw.GLFW_OPENGL_PROFILE, glfw.GLFW_OPENGL_CORE_PROFILE);
+
+    const window = glfw.glfwCreateWindow(1024, 768, "CS5610", null, null);
     if (window == null) {
         std.debug.print("Window failed to create.\n", .{});
         return error.WindowCreationFailed;
     }
+    _ = glfw.glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
     glfw.glfwMakeContextCurrent(window);
 
@@ -77,7 +89,7 @@ pub fn project2() !void {
     var vbo: gl.GLuint = undefined;
     glad.glGenBuffers(1, &vbo);
     glad.glBindBuffer(gl.GL_ARRAY_BUFFER, vbo);
-    glad.glBufferData(gl.GL_ARRAY_BUFFER, num_verticies * @sizeOf(f32), @ptrCast(&float_vertices), gl.GL_STATIC_DRAW);
+    glad.glBufferData(gl.GL_ARRAY_BUFFER, num_verticies * 3 * @sizeOf(f32), float_vertices.ptr, gl.GL_STATIC_DRAW);
 
     glad.glVertexAttribPointer(0, 3, gl.GL_FLOAT, gl.GL_FALSE, 3 * @sizeOf(f32), null);
     glad.glEnableVertexAttribArray(0);
@@ -120,4 +132,8 @@ fn createShader(kind: gl.GLenum, src: []const u8) !gl.GLuint {
     if (success == 0) return error.ShaderCompileError;
 
     return id;
+}
+
+pub fn framebufferSizeCallback(_: ?*glfw.GLFWwindow, width: c_int, height: c_int) callconv(.C) void {
+    glfw.glViewport(0, 0, width, height);
 }
