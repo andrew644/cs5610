@@ -31,6 +31,7 @@ pub fn build(b: *std.Build) void {
     exe.linkSystemLibrary("glfw");
     exe.linkSystemLibrary("gl");
     exe.linkSystemLibrary("assimp");
+    exe.linkSystemLibrary("cglm");
 
     b.installArtifact(exe);
 

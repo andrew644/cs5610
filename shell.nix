@@ -4,6 +4,7 @@ pkgs.mkShell {
   buildInputs = with pkgs; [
     glfw
     pkg-config   # For resolving library paths
+	cglm #math lib
 
 	# asset import lib
 	assimp
